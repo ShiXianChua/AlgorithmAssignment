@@ -1,0 +1,70 @@
+from itertools import permutations
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
+from gmplot import gmplot
+
+geolocator = Nominatim(user_agent="my_apps")
+places = ["Kuala Lumpur, Malaysia","Jakarta, Indonesia","Bangkok, Thailand","Taipei, Taiwan","Hong Kong","Tokyo, Japan","Beijing, China","Seoul, South Korea"]
+
+def getCoordinates(places):
+    locationDict = {}
+    for i in places:
+        location = geolocator.geocode(i)
+        coordinate = (location.latitude, location.longitude)
+        locationDict[i] = coordinate
+
+    return locationDict
+
+def permute(places):
+    permute = list(permutations(places[1::]))
+    listOfPermutation = []
+    for i in permute:
+        i = ("Kuala Lumpur, Malaysia",)+i
+        listOfPermutation.append(i)
+    return listOfPermutation
+
+
+def getDistance(listOfPermutation):
+    #keyD = geodesic(locationArr[0], locationArr[1]).kilometers
+    distanceListSum = []
+    for i in listOfPermutation:
+        sum = 0
+        for j in range(len(i)-1):
+            distance = geodesic(locationDict.get(i[j]),locationDict.get(i[j+1])).kilometers
+            sum += distance
+        distanceListSum.append(sum)
+        print("Route ",i," sequence: ",sum," km")
+    return distanceListSum
+
+def getShortestRoute(distanceListSum,listOfPermutation):
+    min = distanceListSum[0]
+    pointer = 0
+    for i in range(1,len(distanceListSum)):
+        if distanceListSum[i]<min:
+            min = distanceListSum[i]
+            pointer = i
+    print("Best route: ", listOfPermutation[pointer],"\nDistance: ",min," km.")
+    return listOfPermutation[pointer]
+
+def printmap(best,locationDict):
+
+    storeAddress = []
+    for i in best:
+        storeAddress.append(locationDict.get(i))
+
+    gmap = gmplot.GoogleMapPlotter(3.1516964, 101.6942371, 3)
+    gmap.apikey = "AIzaSyD3cSr8TLouz71dNLj - VBMnacep2ChcFLM"
+
+    latitude = [x for x, y in storeAddress]
+    longitude = [y for x, y in storeAddress]
+
+    gmap.scatter(latitude, longitude, colour='red', size=40, marker=False)
+    gmap.polygon(latitude, longitude, colour='cornflowerblue')
+    gmap.draw("myNewMapQ1.html")
+
+#locationDict = {'Kuala Lumpur, Malaysia': (3.1516964, 101.6942371), 'Jakarta, Indonesia': (-6.1753942, 106.827183), 'Bangkok, Thailand': (13.7542529, 100.493087), 'Taipei, Taiwan': (25.0375198, 121.5636796), 'Hong Kong': (22.2793278, 114.1628131), 'Tokyo, Japan': (35.6828387, 139.7594549), 'Beijing, China': (39.906217, 116.3912757), 'Seoul, South Korea': (37.5666791, 126.9782914)}
+locationDict = getCoordinates(places)
+listOfPermutation = permute(places)
+distanceListSum = getDistance(listOfPermutation)
+best = getShortestRoute(distanceListSum,listOfPermutation)
+printmap(best,locationDict)
